@@ -161,18 +161,6 @@ h1 {
   font-size: clamp(44px, 8.8vw, 124px);
 }
 
-.cover-copy h1 {
-  font-family:
-    "STXingkai",
-    "华文行楷",
-    "FZShuTi",
-    "方正舒体",
-    "KaiTi",
-    "楷体",
-    serif;
-  text-shadow: 0 0 18px rgba(255, 240, 188, 0.12);
-}
-
 .title-line {
   display: block;
   white-space: nowrap;
