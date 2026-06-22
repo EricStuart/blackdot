@@ -91,7 +91,7 @@ button {
     linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
   background-size: 7px 7px;
   mix-blend-mode: screen;
-  animation: pixelDrift 18s steps(5, end) infinite;
+  animation: pixelDrift 90s steps(5, end) infinite;
 }
 
 .cover-nav,

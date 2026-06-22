@@ -3,13 +3,15 @@ const cover = document.getElementById("cover");
 const enterButton = document.getElementById("enterButton");
 const backButton = document.getElementById("backButton");
 const ctx = canvas.getContext("2d");
-const PIXEL_FLICKER_SPEED = 0.5;
+const PIXEL_FLICKER_SPEED = 0.1;
+const PIXEL_FRAME_INTERVAL_MS = 1000 / 6;
 
 const state = {
   cols: 0,
   rows: 0,
   cell: 6,
   tick: 0,
+  lastDrawAt: 0,
 };
 
 function resizeCanvas() {
@@ -27,7 +29,13 @@ function noise(x, y, t) {
   return value - Math.floor(value);
 }
 
-function drawPixelScene() {
+function drawPixelScene(timestamp = 0) {
+  if (state.lastDrawAt && timestamp - state.lastDrawAt < PIXEL_FRAME_INTERVAL_MS) {
+    window.requestAnimationFrame(drawPixelScene);
+    return;
+  }
+
+  state.lastDrawAt = timestamp;
   const { cols, rows, tick } = state;
   const portrait = rows > cols;
   ctx.clearRect(0, 0, cols, rows);
