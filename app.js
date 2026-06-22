@@ -3,8 +3,11 @@ const cover = document.getElementById("cover");
 const enterButton = document.getElementById("enterButton");
 const backButton = document.getElementById("backButton");
 const ctx = canvas.getContext("2d");
-const PIXEL_FLICKER_SPEED = 0.1;
-const PIXEL_FRAME_INTERVAL_MS = 1000 / 6;
+const PIXEL_FLICKER_SPEED = 0.2;
+const PIXEL_FRAME_INTERVAL_MS = 1000 / 12;
+const GOLD_LOW = [86, 62, 20];
+const GOLD_HIGH = [255, 232, 148];
+const BEAM_APEX = { x: 0.98, y: 0.08 };
 
 const state = {
   cols: 0,
@@ -17,7 +20,7 @@ const state = {
 function resizeCanvas() {
   const width = window.innerWidth;
   const height = window.innerHeight;
-  state.cell = width < 720 ? 7 : 8;
+  state.cell = width < 720 ? 3.5 : 4;
   state.cols = Math.ceil(width / state.cell);
   state.rows = Math.ceil(height / state.cell);
   canvas.width = state.cols;
@@ -27,6 +30,41 @@ function resizeCanvas() {
 function noise(x, y, t) {
   const value = Math.sin(x * 12.9898 + y * 78.233 + t * 0.018) * 43758.5453;
   return value - Math.floor(value);
+}
+
+function goldGradient(tone, nx, ny) {
+  const shimmer = Math.max(0, Math.min(1, tone + nx * 0.18 - ny * 0.08));
+  return GOLD_LOW.map((channel, index) => {
+    const value = channel + (GOLD_HIGH[index] - channel) * shimmer;
+    return Math.round(value);
+  });
+}
+
+function projectToSegment(point, start, end) {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const lengthSquared = dx * dx + dy * dy;
+  const progress =
+    lengthSquared === 0
+      ? 0
+      : Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared));
+  const projectedX = start.x + progress * dx;
+  const projectedY = start.y + progress * dy;
+  return {
+    distance: Math.hypot(point.x - projectedX, point.y - projectedY),
+    progress,
+  };
+}
+
+function sweepingBeamIntensity(nx, ny, tick, portrait) {
+  const sweep = (Math.sin(tick * 0.09 - Math.PI / 2) + 1) / 2;
+  const base = { x: 0.04 + sweep * 0.9, y: portrait ? 0.96 : 0.92 };
+  const startWidth = portrait ? 0.012 : 0.01;
+  const endWidth = portrait ? 0.36 : 0.28;
+  const { distance, progress } = projectToSegment({ x: nx, y: ny }, BEAM_APEX, base);
+  const currentWidth = startWidth + (endWidth - startWidth) * progress;
+  const triangularSpread = Math.max(0, 1 - distance / currentWidth);
+  return triangularSpread * (0.72 + progress * 0.28);
 }
 
 function drawPixelScene(timestamp = 0) {
@@ -46,39 +84,17 @@ function drawPixelScene(timestamp = 0) {
     for (let x = 0; x < cols; x += 1) {
       const nx = x / cols;
       const ny = y / rows;
-      const beamLine = portrait ? 0.86 - nx * 0.78 : 0.78 - nx * 0.55;
-      const horizonLine = portrait ? 0.7 : 0.66;
-      const beam = Math.max(0, 1 - Math.abs(ny - beamLine) * (portrait ? 5.1 : 6.2));
-      const horizon = Math.max(0, 1 - Math.abs(ny - horizonLine) * 9);
+      const beam = sweepingBeamIntensity(nx, ny, tick, portrait);
       const field = noise(x, y, tick);
-      const mountainA = ny > (portrait ? 0.66 : 0.6) + Math.sin(nx * 8) * 0.035 + nx * 0.12;
-      const mountainB = ny > (portrait ? 0.76 : 0.72) + Math.cos(nx * 7) * 0.04 - nx * 0.1;
-      let tone = beam * 0.72 + horizon * 0.18 + field * 0.17;
-
-      if (mountainA) tone -= 0.35;
-      if (mountainB) tone -= 0.25;
-
-      const personX = Math.abs(nx - (portrait ? 0.62 : 0.55));
-      const body = personX < (portrait ? 0.052 : 0.035) && ny > (portrait ? 0.64 : 0.57) && ny < 0.88;
-      const head = personX < (portrait ? 0.04 : 0.026) && Math.abs(ny - (portrait ? 0.6 : 0.53)) < 0.04;
-      if (body || head) tone = 0.02;
+      let tone = beam * 0.72 + field * 0.12;
 
       if (field < tone) {
-        const shade = Math.min(245, Math.max(35, Math.floor(34 + tone * 228)));
-        ctx.fillStyle = `rgb(${shade}, ${shade}, ${shade})`;
+        const [r, g, b] = goldGradient(tone, nx, ny);
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
         ctx.fillRect(x, y, 1, 1);
       }
     }
   }
-
-  ctx.strokeStyle = "rgba(255,255,255,0.62)";
-  ctx.lineWidth = 1;
-  ctx.strokeRect(
-    portrait ? 4 : 8,
-    Math.floor(rows * (portrait ? 0.55 : 0.52)),
-    cols - (portrait ? 8 : 16),
-    Math.floor(rows * (portrait ? 0.34 : 0.36)),
-  );
 
   state.tick += PIXEL_FLICKER_SPEED;
   window.requestAnimationFrame(drawPixelScene);
@@ -98,15 +114,10 @@ resizeCanvas();
 drawPixelScene();
 
 window.addEventListener("resize", resizeCanvas);
-cover.addEventListener("click", openInvitation);
 enterButton.addEventListener("click", openInvitation);
 backButton.addEventListener("click", closeInvitation);
 
 window.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" && !document.body.classList.contains("is-open")) {
-    openInvitation();
-  }
-
   if (event.key === "Escape" && document.body.classList.contains("is-open")) {
     document.body.classList.remove("is-open");
   }

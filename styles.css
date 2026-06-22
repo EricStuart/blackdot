@@ -50,7 +50,7 @@ button {
   min-height: 100svh;
   padding: clamp(22px, 5vw, 58px);
   isolation: isolate;
-  cursor: pointer;
+  cursor: default;
   overflow: hidden;
   transition:
     opacity 900ms var(--ease),
@@ -87,11 +87,23 @@ button {
   pointer-events: none;
   opacity: 0.22;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 7px 7px;
+    linear-gradient(rgba(255, 211, 104, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 211, 104, 0.08) 1px, transparent 1px);
+  background-size: 3.5px 3.5px;
   mix-blend-mode: screen;
-  animation: pixelDrift 90s steps(5, end) infinite;
+  animation: pixelDrift 4.5s steps(5, end) infinite;
+}
+
+.reference-silhouette {
+  position: absolute;
+  right: clamp(18px, 7vw, 110px);
+  bottom: clamp(92px, 13vh, 150px);
+  z-index: 0;
+  width: min(760px, 78vw);
+  max-height: 34vh;
+  color: #000;
+  opacity: 0.94;
+  pointer-events: none;
 }
 
 .cover-nav,
@@ -113,10 +125,18 @@ button {
 }
 
 .cover-copy {
+  position: relative;
+  z-index: 1;
   align-self: center;
   width: min(760px, 100%);
   transform: translateY(3vh);
   animation: coverIn 1000ms var(--ease) both 120ms;
+}
+
+.cover-nav,
+.cover-hint {
+  position: relative;
+  z-index: 1;
 }
 
 .eyebrow {
@@ -141,8 +161,30 @@ h1 {
   font-size: clamp(44px, 8.8vw, 124px);
 }
 
+.cover-copy h1 {
+  font-family:
+    "STXingkai",
+    "华文行楷",
+    "FZShuTi",
+    "方正舒体",
+    "KaiTi",
+    "楷体",
+    serif;
+  text-shadow: 0 0 18px rgba(255, 240, 188, 0.12);
+}
+
+.title-line {
+  display: block;
+  white-space: nowrap;
+}
+
 h2 {
   font-size: clamp(42px, 8vw, 104px);
+}
+
+.invitation-content h2 {
+  background: none;
+  color: #bbbc7b;
 }
 
 .lead {
@@ -324,7 +366,7 @@ body.is-open .invitation-content {
 
 @keyframes pixelDrift {
   50% {
-    transform: translate(7px, -7px);
+    transform: translate(14px, -14px);
   }
 }
 
@@ -342,13 +384,17 @@ body.is-open .invitation-content {
 
   h1 {
     max-width: 350px;
-    font-size: clamp(34px, 10.8vw, 46px);
+    font-size: clamp(30px, 9.2vw, 40px);
     line-height: 1.13;
   }
 
   h2 {
     font-size: clamp(36px, 12vw, 52px);
     line-height: 1.12;
+  }
+
+  .invitation-content h2 {
+    font-size: clamp(36px, 10vw, 40px);
   }
 
   .lead {
@@ -370,6 +416,13 @@ body.is-open .invitation-content {
     justify-self: start;
     max-width: 220px;
     line-height: 1.5;
+  }
+
+  .reference-silhouette {
+    right: 16px;
+    bottom: 116px;
+    width: min(520px, 92vw);
+    max-height: 25vh;
   }
 
   .invitation {
