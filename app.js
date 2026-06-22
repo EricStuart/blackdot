@@ -3,6 +3,7 @@ const cover = document.getElementById("cover");
 const enterButton = document.getElementById("enterButton");
 const backButton = document.getElementById("backButton");
 const ctx = canvas.getContext("2d");
+const PIXEL_FLICKER_SPEED = 0.5;
 
 const state = {
   cols: 0,
@@ -71,7 +72,7 @@ function drawPixelScene() {
     Math.floor(rows * (portrait ? 0.34 : 0.36)),
   );
 
-  state.tick += 1;
+  state.tick += PIXEL_FLICKER_SPEED;
   window.requestAnimationFrame(drawPixelScene);
 }
 
